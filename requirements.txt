@@ -1,24 +1,26 @@
-# Framework y servidor web
+# Dependencias base
+setuptools>=65.5.1
+wheel>=0.40.0
+
+# Web y API
 fastapi==0.100.0
 uvicorn==0.22.0
 
-# gRPC y herramientas
-grpcio==1.54.2
-grpcio-tools==1.54.2
-protobuf==4.21.6
-
 # CLI y utilidades
-typer==0.9.0
-click>=8.0.0
-requests==2.31.0
+click==8.1.3
+typer==0.7.0
 python-dotenv==1.0.0
+requests==2.31.0
 
-# Async HTTP client y métricas
-aiohttp==3.8.5
+# Async HTTP y métricas
+aiohttp==3.12.1  # Versión compatible con Python 3.13
 psutil==5.9.5
 
-# Testing
-pytest==7.3.1
+# gRPC
+protobuf==4.21.6
+grpcio==1.54.0
+grpcio-tools==1.54.0
 
-# YAML (configuración)
-PyYAML==6.0
+# Testing y configuración
+pytest==7.3.1
+PyYAML==6.0.2
