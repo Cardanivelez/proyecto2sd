@@ -1,6 +1,6 @@
 namenode:
-  host: "34.202.250.249"
-  port: 8000
+  host: "localhost"
+  port: 5000
 
 datanodes:
   datanode1:

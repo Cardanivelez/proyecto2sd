@@ -85,31 +85,29 @@ class DataNode(dfs_pb2_grpc.FileServiceServicer):
         
         return dfs_pb2.BlockResponse(success=False, message="No block ID provided")
 
-async def serve(node_id: str, port: int, storage_path: str):
-    """Inicia el servidor gRPC y FastAPI del DataNode"""
-    # Crear instancia del DataNode
-    datanode = DataNode(node_id, storage_path)
-    
-    # Configurar servidor gRPC
-    server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10))
-    dfs_pb2_grpc.add_FileServiceServicer_to_server(datanode, server)
-    server_address = f'[::]:{port}'
-    server.add_insecure_port(server_address)
-    
-    # Iniciar servidor gRPC
-    await server.start()
-    print(f"DataNode {node_id} escuchando en el puerto {port}")
-    
-    # Iniciar servidor FastAPI para métricas
-    metrics_port = port + 100  # Puerto para métricas = puerto gRPC + 100
-    config = uvicorn.Config(datanode.metrics_app, host="0.0.0.0", port=metrics_port)
+async def start_metrics_server(metrics_app, metrics_port):
+    config = uvicorn.Config(metrics_app, host="0.0.0.0", port=metrics_port, log_level="info")
     server = uvicorn.Server(config)
     await server.serve()
-    
-    try:
-        await server.wait_for_termination()
-    except KeyboardInterrupt:
-        await server.stop(0)
+
+async def serve(node_id: str, port: int, storage_path: str):
+    """Inicia el servidor gRPC y FastAPI del DataNode en paralelo"""
+    datanode = DataNode(node_id, storage_path)
+
+    # Configurar servidor gRPC
+    grpc_server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10))
+    dfs_pb2_grpc.add_FileServiceServicer_to_server(datanode, grpc_server)
+    server_address = f'[::]:{port}'
+    grpc_server.add_insecure_port(server_address)
+
+    # Iniciar ambos servidores en paralelo
+    metrics_port = port + 100  # Puerto para métricas = puerto gRPC + 100
+    print(f"DataNode {node_id} escuchando en el puerto {port} (gRPC) y {metrics_port} (métricas)")
+    await asyncio.gather(
+        grpc_server.start(),
+        start_metrics_server(datanode.metrics_app, metrics_port),
+        grpc_server.wait_for_termination()
+    )
 
 def main():
     """Punto de entrada principal para el DataNode"""
