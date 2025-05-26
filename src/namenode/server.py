@@ -10,9 +10,9 @@ class NameNode:
     def __init__(self):
         self.files: Dict[str, dict] = {}
         self.datanodes = {
-            "datanode1": {"host": "172.31.1.11", "port": 50051, "load": 0},
-            "datanode2": {"host": "172.31.1.12", "port": 50051, "load": 0},
-            "datanode3": {"host": "172.31.1.13", "port": 50051, "load": 0}
+            "datanode1": {"host": "3.232.66.23", "port": 50051, "load": 0},
+            "datanode2": {"host": "44.208.230.35", "port": 50052, "load": 0},
+            "datanode3": {"host": "54.235.162.161", "port": 50053, "load": 0}
         }
         self.block_size = 64 * 1024 * 1024
         self.replication_factor = 2

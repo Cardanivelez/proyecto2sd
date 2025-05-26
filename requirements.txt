@@ -1,24 +1,23 @@
 # Framework y servidor web
-fastapi==0.68.0
-uvicorn==0.15.0
+fastapi==0.100.0
+uvicorn==0.22.0
 
-# gRPC y herramientas (versiones binarias)
-grpcio-cp313-win_amd64==1.54.2
+# gRPC y herramientas
+grpcio==1.54.2
+grpcio-tools==1.54.2
 protobuf==3.20.3
 
 # CLI y utilidades
 typer==0.4.0
-requests==2.26.0
+requests==2.31.0
+python-dotenv==1.0.0
 
-# Versiones precompiladas para Python 3.13
-aiohttp-cp313-win_amd64==3.8.1
-psutil-cp313-win_amd64==5.8.0
+# Async HTTP client y métricas
+aiohttp==3.8.5
+psutil==5.9.5
 
-# Dependencias adicionales
-pydantic==1.10.12
-starlette==0.14.2
-yarl==1.9.2
-multidict==6.0.4
-async-timeout==4.0.3
-attrs==23.1.0
-chardet==4.0.0
+# Testing
+pytest==7.3.1
+
+# YAML (configuración)
+PyYAML==6.0
