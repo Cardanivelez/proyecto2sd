@@ -186,5 +186,7 @@ def pwd():
     global current_path
     typer.echo(f"Directorio actual: {current_path}")
 
+# Cambio para forzar commit en git
+
 if __name__ == "__main__":
     app()
