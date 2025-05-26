@@ -8,6 +8,8 @@ import time
 from fastapi import FastAPI
 import random 
 from typing import List 
+import argparse
+import uvicorn
 
 class DataNode(dfs_pb2_grpc.FileServiceServicer):
     def __init__(self, node_id: str, storage_path: str = "./storage"):
@@ -82,3 +84,48 @@ class DataNode(dfs_pb2_grpc.FileServiceServicer):
             return dfs_pb2.BlockResponse(success=True)
         
         return dfs_pb2.BlockResponse(success=False, message="No block ID provided")
+
+async def serve(node_id: str, port: int, storage_path: str):
+    """Inicia el servidor gRPC y FastAPI del DataNode"""
+    # Crear instancia del DataNode
+    datanode = DataNode(node_id, storage_path)
+    
+    # Configurar servidor gRPC
+    server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10))
+    dfs_pb2_grpc.add_FileServiceServicer_to_server(datanode, server)
+    server_address = f'[::]:{port}'
+    server.add_insecure_port(server_address)
+    
+    # Iniciar servidor gRPC
+    await server.start()
+    print(f"DataNode {node_id} escuchando en el puerto {port}")
+    
+    # Iniciar servidor FastAPI para métricas
+    metrics_port = port + 100  # Puerto para métricas = puerto gRPC + 100
+    config = uvicorn.Config(datanode.metrics_app, host="0.0.0.0", port=metrics_port)
+    server = uvicorn.Server(config)
+    await server.serve()
+    
+    try:
+        await server.wait_for_termination()
+    except KeyboardInterrupt:
+        await server.stop(0)
+
+def main():
+    """Punto de entrada principal para el DataNode"""
+    parser = argparse.ArgumentParser(description='DataNode Server')
+    parser.add_argument('--node-id', required=True, help='ID único del DataNode')
+    parser.add_argument('--port', type=int, required=True, help='Puerto para el servidor gRPC')
+    parser.add_argument('--storage', required=True, help='Ruta para almacenamiento de bloques')
+    
+    args = parser.parse_args()
+    
+    # Crear directorio de almacenamiento si no existe
+    storage_path = Path(args.storage)
+    storage_path.mkdir(parents=True, exist_ok=True)
+    
+    # Iniciar el servidor
+    asyncio.run(serve(args.node_id, args.port, str(storage_path)))
+
+if __name__ == "__main__":
+    main()
