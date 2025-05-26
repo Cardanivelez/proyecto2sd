@@ -38,5 +38,5 @@ data/
 storage*/
 
 # Generated files
-src/proto/*_pb2.py
-src/proto/*_pb2_grpc.py
+#src/proto/*_pb2.py
+#src/proto/*_pb2_grpc.py
