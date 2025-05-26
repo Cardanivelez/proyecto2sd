@@ -5,6 +5,8 @@ import uuid
 import random
 import aiohttp
 import asyncio
+import argparse
+from ..common.config import Config
 
 class NameNode:
     def __init__(self):
@@ -84,33 +86,62 @@ class NameNode:
                     current[part] = {}
                 current = current[part]
 
-app = FastAPI()
-namenode = NameNode()
-
-@app.post("/files")
-async def create_file(filename: str, size: int):
-    if filename in namenode.files:
-        raise HTTPException(status_code=400, detail="File already exists")
+async def run_server(host: str, port: int, config_path: str = None):
+    """Inicia el servidor FastAPI del NameNode"""
+    # Cargar configuración
+    config = Config.load(config_path)
     
-    blocks = await namenode.allocate_blocks(size)
-    namenode.files[filename] = {
-        "size": size,
-        "blocks": blocks
-    }
-    namenode.update_directory_structure(filename)
-    return {"filename": filename, "blocks": blocks}
+    # Crear instancia del NameNode
+    namenode = NameNode()
+    
+    # Configurar FastAPI
+    app = FastAPI(title="NameNode API")
+    
+    # Agregar rutas
+    @app.post("/files")
+    async def create_file(filename: str, size: int):
+        if filename in namenode.files:
+            raise HTTPException(status_code=400, detail="File already exists")
+        
+        blocks = await namenode.allocate_blocks(size)
+        namenode.files[filename] = {
+            "size": size,
+            "blocks": blocks
+        }
+        namenode.update_directory_structure(filename)
+        return {"filename": filename, "blocks": blocks}
 
-@app.post("/directory")
-async def create_directory(path: str):
-    namenode.update_directory_structure(path, is_directory=True)
-    return {"message": f"Directory {path} created"}
+    @app.post("/directory")
+    async def create_directory(path: str):
+        namenode.update_directory_structure(path, is_directory=True)
+        return {"message": f"Directory {path} created"}
 
-@app.get("/ls/{path:path}")
-async def list_directory(path: str):
-    current = namenode.directory_structure
-    for part in path.strip('/').split('/'):
-        if part:
-            if part not in current:
-                raise HTTPException(status_code=404, detail="Path not found")
-            current = current[part]
-    return {"contents": current}
+    @app.get("/ls/{path:path}")
+    async def list_directory(path: str):
+        current = namenode.directory_structure
+        for part in path.strip('/').split('/'):
+            if part:
+                if part not in current:
+                    raise HTTPException(status_code=404, detail="Path not found")
+                current = current[part]
+        return {"contents": current}
+    
+    # Iniciar servidor
+    config = uvicorn.Config(app, host=host, port=port)
+    server = uvicorn.Server(config)
+    await server.serve()
+
+def main():
+    """Punto de entrada principal para el NameNode"""
+    parser = argparse.ArgumentParser(description='NameNode Server')
+    parser.add_argument('--host', default="0.0.0.0", help='Host address to bind to')
+    parser.add_argument('--port', type=int, required=True, help='Port to listen on')
+    parser.add_argument('--config', help='Path to configuration file')
+    
+    args = parser.parse_args()
+    
+    # Iniciar el servidor
+    asyncio.run(run_server(args.host, args.port, args.config))
+
+if __name__ == "__main__":
+    main()
