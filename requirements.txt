@@ -17,9 +17,9 @@ aiohttp==3.12.1  # Versión compatible con Python 3.13
 psutil==5.9.5
 
 # gRPC
-protobuf==4.21.6
-grpcio==1.54.0
-grpcio-tools==1.54.0
+grpcio>=1.60.0
+grpcio-tools>=1.60.0
+protobuf>=4.25.0
 
 # Testing y configuración
 pytest==7.3.1
