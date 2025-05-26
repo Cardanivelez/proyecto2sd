@@ -9,9 +9,6 @@ Sistema de archivos distribuidos implementado en Python con soporte para replica
 - Cliente CLI para operaciones básicas
 - Factor de replicación configurable
 
-## Requisitos
-- Python 3.8+
-- Poetry
 
 ## Instalación
 ```bash

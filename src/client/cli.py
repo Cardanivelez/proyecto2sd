@@ -180,5 +180,11 @@ def get(dfs_path: str, local_path: str):
 
     typer.echo(f"Archivo descargado exitosamente: {local_path}")
 
+@app.command()
+def pwd():
+    """Muestra el directorio actual en el DFS"""
+    global current_path
+    typer.echo(f"Directorio actual: {current_path}")
+
 if __name__ == "__main__":
     app()

@@ -126,6 +126,23 @@ async def run_server(host: str, port: int, config_path: str = None):
                 current = current[part]
         return {"contents": current}
     
+    @app.delete("/directory")
+    async def delete_directory(path: str):
+        # Navegar hasta el directorio padre
+        current = namenode.directory_structure
+        parts = path.strip('/').split('/')
+        for i, part in enumerate(parts):
+            if i == len(parts) - 1:
+                # Eliminar el directorio si existe
+                if part in current and isinstance(current[part], dict):
+                    del current[part]
+                    return {"message": f"Directorio {path} eliminado"}
+                else:
+                    raise HTTPException(status_code=404, detail="Directorio no encontrado")
+            if part not in current or not isinstance(current[part], dict):
+                raise HTTPException(status_code=404, detail="Ruta no encontrada")
+            current = current[part]
+    
     # Iniciar servidor
     config = uvicorn.Config(app, host=host, port=port)
     server = uvicorn.Server(config)
