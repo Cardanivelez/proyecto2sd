@@ -1,0 +1,11 @@
+{
+    "NAMENODE_HOST": "localhost",
+    "NAMENODE_PORT": 8000,
+    "DATANODES": {
+        "datanode1": "localhost:50051",
+        "datanode2": "localhost:50052",
+        "datanode3": "localhost:50053"
+    },
+    "REPLICATION_FACTOR": 2,
+    "BLOCK_SIZE": 67108864
+}

@@ -1,0 +1,11 @@
+namenode:
+  host: "172.31.1.10"  # Cambia esto por la IP real de tu NameNode
+  port: 8000
+
+datanodes:
+  node1:
+    id: "datanode1"
+    host: "172.31.1.11"  # Cambia esto por la IP real del DataNode 1
+    port: 50051
+    storage: "/data/node1"
+  # ... similar para node2 y node3

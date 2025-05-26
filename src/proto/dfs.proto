@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package dfs;
+
+service FileService {
+    // Servicios existentes
+    rpc PutBlock (stream BlockData) returns (BlockResponse) {}
+    rpc GetBlock (BlockRequest) returns (stream BlockData) {}
+    
+    // Nuevos servicios para replicación Leader-Follower
+    rpc ReplicateBlock (stream BlockData) returns (BlockResponse) {}
+    rpc SyncBlock (BlockRequest) returns (BlockResponse) {}
+    rpc BecomeLeader (LeaderRequest) returns (LeaderResponse) {}
+}
+
+message BlockData {
+    string block_id = 1;
+    bytes data = 2;
+    string source_node = 3;
+    repeated string replica_nodes = 4;  // Lista de nodos para replicación
+}
+
+message BlockRequest {
+    string block_id = 1;
+}
+
+message BlockResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message LeaderRequest {
+    string block_id = 1;
+    repeated string follower_nodes = 2;
+}
+
+message LeaderResponse {
+    bool success = 1;
+    string message = 2;
+}
