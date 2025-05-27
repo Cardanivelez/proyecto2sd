@@ -64,6 +64,7 @@ proyecto2sd/
 │
 ├── requirements.txt         # Dependencias Python
 ├── setup.py                 # Instalador del paquete
+├── comandosguias.txt        # Lista de comandos usados a mano sobre maquinas AWS (nodos)
 └── README.md                # Este archivo
 ```
 
