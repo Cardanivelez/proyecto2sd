@@ -132,6 +132,9 @@ python -m src.client.cli put archivo.txt /carpeta/archivo.txt
 ## Referencias y Lecturas Recomendadas
 - [Google File System (GFS)](https://g.co/kgs/XzwmU76)
 - [Hadoop Distributed File System (HDFS)](https://es.wikipedia.org/wiki/Hadoop_Distributed_File_System)
+- [Documentación oficial de Python] (https://docs.python.org/3/)
+- [Documentación de FastAPI] (https://fastapi.tiangolo.com/)
+- [Documentación de Typer] (https://typer.tiangolo.com/)
 
 ---
 
