@@ -55,6 +55,8 @@ class NameNode:
         for _ in range(num_blocks):
             block_id = str(uuid.uuid4())
             selected_nodes = await self.select_optimal_datanodes(file_size)
+            if not selected_nodes:
+                raise HTTPException(status_code=500, detail="No hay DataNodes disponibles para almacenar bloques. Verifica que los DataNodes estén activos y accesibles.")
             
             # Designar leader y followers
             leader = selected_nodes[0]

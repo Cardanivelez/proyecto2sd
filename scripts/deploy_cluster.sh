@@ -19,26 +19,21 @@ deploy_instance() {
 
     echo "Desplegando $type en $host..."
 
-    # Copiar archivos al servidor
-    ssh -i $SSH_KEY $DFS_USER@$host "mkdir -p ~/dfs"
-    scp -i $SSH_KEY -r ../src ../config ../scripts ../requirements.txt $DFS_USER@$host:~/dfs/
+    # Copiar archivos al servidor (ahora solo clona el repo)
+    ssh -i $SSH_KEY $DFS_USER@$host "rm -rf ~/proyecto2sd && git clone https://github.com/Cardanivelez/proyecto2sd.git"
 
     # Configurar y ejecutar el servicio
     ssh -i $SSH_KEY $DFS_USER@$host "
-        cd ~/dfs
+        cd ~/proyecto2sd
 
-        # Instalar dependencias del sistema
-        sudo apt-get update
-        sudo apt-get install -y python3-pip python3-venv
-
-        # Crear entorno virtual si no existe
-        if [ ! -d 'venv' ]; then
-            python3 -m venv venv
+        # Crear entorno virtual Python 3.11 si no existe
+        if [ ! -d 'env' ]; then
+            python3.11 -m venv env
         fi
 
         # Activar entorno virtual e instalar dependencias
-        source venv/bin/activate
-        pip install --upgrade pip
+        source env/bin/activate
+        python3 -m pip install --upgrade pip setuptools wheel
         pip install -r requirements.txt
 
         # Generar código gRPC si es necesario
@@ -49,17 +44,17 @@ deploy_instance() {
 
         # Crear directorio de datos para DataNodes
         if [ \"$type\" = \"datanode\" ]; then
-            mkdir -p ~/dfs/data/$node_id
+            mkdir -p ~/proyecto2sd/data/$node_id
         fi
 
         # Crear servicio systemd
-        SERVICE_PATH=\"/etc/systemd/system/dfs-$type${node_id:+-$node_id}.service\"
-        EXEC_CMD=\"source $VENV_PATH/bin/activate && python3 src/$type/server.py\"
+        SERVICE_PATH="/etc/systemd/system/dfs-$type${node_id:+-$node_id}.service"
+        EXEC_CMD="source /home/$DFS_USER/proyecto2sd/env/bin/activate && python3 src/$type/server.py"
         if [ \"$type\" = \"datanode\" ]; then
-            EXEC_CMD=\"\$EXEC_CMD --node-id $node_id --storage ~/dfs/data/$node_id\"
+            EXEC_CMD=\"$EXEC_CMD --node-id $node_id --storage ~/proyecto2sd/data/$node_id\"
         fi
 
-        sudo bash -c 'cat > \$SERVICE_PATH' <<EOF
+        sudo bash -c 'cat > $SERVICE_PATH' <<EOF
 [Unit]
 Description=DFS $type $node_id
 After=network.target
@@ -67,8 +62,8 @@ After=network.target
 [Service]
 Type=simple
 User=$DFS_USER
-WorkingDirectory=/home/$DFS_USER/dfs
-ExecStart=/bin/bash -c \"$EXEC_CMD\"
+WorkingDirectory=/home/$DFS_USER/proyecto2sd
+ExecStart=/bin/bash -c "$EXEC_CMD"
 Restart=always
 
 [Install]
