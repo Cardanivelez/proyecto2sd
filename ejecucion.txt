@@ -1,0 +1,48 @@
+--------mi maquina
+cd SD/proyecto2/
+ssh -i "proyecto2.pem" ubuntu@ec2-3-232-66-23.compute-1.amazonaws.com  --nodo1
+ssh -i "proyecto2.pem" ubuntu@ec2-44-208-230-35.compute-1.amazonaws.com  --nodo2
+ssh -i "proyecto2.pem" ubuntu@ec2-54-235-162-161.compute-1.amazonaws.com  --nodo3
+ssh -i "proyecto2.pem" ubuntu@ec2-34-202-250-249.compute-1.amazonaws.com  --namenode
+
+
+-------dentro de cada maquina (data y name)
+git clone https://github.com/Cardanivelez/proyecto2sd.git
+cd proyecto2sd
+python3.11 -m venv env
+source env/bin/activate
+python3 -m pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+
+------para cada datanode
+(sudo lsof -i :puerto y sudo kill -9 PID)
+python3 -m src.datanode.server --node-id datanode1 --port 50051 --storage ./data/node1
+python3 -m src.datanode.server --node-id datanode2 --port 50052 --storage ./data/node2
+python3 -m src.datanode.server --node-id datanode3 --port 50053 --storage ./data/node3
+
+------paca iniciar namenode
+python3 -m src.namenode.server --port 5000 --config ./ruta/a/tu/config.yaml
+
+------pruebas de cliente CLI
+.\venv\Scripts\Activate
+
+python -m src.client.cli ls --path /
+python -m src.client.cli ls   #Directorio actual
+
+python -m src.client.cli cd --path /ruta/al/directorio
+python -m src.client.cli cd --path /misdocumentos #Ejemplo
+
+python -m src.client.cli mkdir --path /ruta/nuevo_directorio
+python -m src.client.cli mkdir /nuevacarpeta #Ejemplo
+
+python -m src.client.cli rmdir --path /ruta/directorio
+python -m src.client.cli rmdir --path /nuevacarpeta #Ejemplo
+
+python -m src.client.cli rm --path /ruta/archivo.txt
+python -m src.client.cli rm --path /misdocumentos/archivo.txt #Ejemplo
+
+python -m src.client.cli put --local-path C:\ruta\local\archivo.txt --dfs-path /ruta/remota/archivo.txt
+python -m src.client.cli put --local-path C:\Users\Danilo\Desktop\ejemplo.txt --dfs-path /misdocumentos/ejemplo.txt #ejemplo
+
+python -m src.client.cli get --dfs-path /ruta/remota/archivo.txt --local-path C:\ruta\local\archivo.txt
+python -m src.client.cli get --dfs-path /misdocumentos/ejemplo.txt --local-path C:\Users\Danilo\Desktop\ejemplo_descargado.txt #Ejemplo
