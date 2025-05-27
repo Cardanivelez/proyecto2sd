@@ -2,6 +2,7 @@ import typer
 import requests
 import grpc
 import asyncio
+import os
 from pathlib import Path
 from typing import Optional
 from ..proto import dfs_pb2, dfs_pb2_grpc
@@ -9,7 +10,19 @@ from ..common.config import Config
 
 app = typer.Typer()
 config = Config.load()
-current_path = "/"
+SESSION_PATH_FILE = os.path.expanduser("~/.dfs_client_path")
+
+def load_current_path():
+    if os.path.exists(SESSION_PATH_FILE):
+        with open(SESSION_PATH_FILE, 'r') as f:
+            return f.read().strip() or "/"
+    return "/"
+
+def save_current_path(path):
+    with open(SESSION_PATH_FILE, 'w') as f:
+        f.write(path)
+
+current_path = load_current_path()
 
 @app.command()
 def ls(path: Optional[str] = None):
@@ -38,6 +51,7 @@ def cd(path: str):
     response = requests.get(f"http://{config.NAMENODE_HOST}:{config.NAMENODE_PORT}/ls/{new_path}")
     if response.status_code == 200:
         current_path = new_path
+        save_current_path(current_path)
         typer.echo(f"Directorio actual: {current_path}")
     else:
         typer.echo(f"Error: Directorio no encontrado")
@@ -184,6 +198,7 @@ def get(dfs_path: str, local_path: str):
 def pwd():
     """Muestra el directorio actual en el DFS"""
     global current_path
+    current_path = load_current_path()
     typer.echo(f"Directorio actual: {current_path}")
 
 # Cambio para forzar commit en git
