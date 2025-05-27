@@ -27,8 +27,9 @@ class NameNode:
         # Obtener métricas de cada DataNode
         for node_id, node_info in self.datanodes.items():
             try:
+                metrics_port = node_info['port'] + 100  # Usar puerto de métricas
                 async with aiohttp.ClientSession() as session:
-                    async with session.get(f"http://{node_info['host']}:{node_info['port']}/metrics") as response:
+                    async with session.get(f"http://{node_info['host']}:{metrics_port}/metrics") as response:
                         metrics = await response.json()
                         available_nodes.append({
                             "node_id": node_id,
