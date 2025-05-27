@@ -6,7 +6,28 @@ import random
 import aiohttp
 import asyncio
 import argparse
+import json
 from ..common.config import Config
+
+PERSISTENCE_FILE = "namenode_state.json"
+
+def save_state(self):
+    state = {
+        "files": self.files,
+        "directory_structure": self.directory_structure
+    }
+    with open(PERSISTENCE_FILE, "w") as f:
+        json.dump(state, f)
+
+def load_state(self):
+    try:
+        with open(PERSISTENCE_FILE, "r") as f:
+            state = json.load(f)
+            self.files = state.get("files", {})
+            self.directory_structure = state.get("directory_structure", {"/": {}})
+    except Exception:
+        self.files = {}
+        self.directory_structure = {"/": {}}
 
 class NameNode:
     def __init__(self):
@@ -18,7 +39,8 @@ class NameNode:
         }
         self.block_size = 64 * 1024 * 1024
         self.replication_factor = 2
-        self.directory_structure = {"/" : {}}
+        self.directory_structure = {"/": {}}
+        load_state(self)
 
     async def select_optimal_datanodes(self, file_size: int) -> List[dict]:
         """Selecciona los DataNodes óptimos basado en carga y disponibilidad"""
@@ -88,6 +110,7 @@ class NameNode:
                 if part not in current:
                     current[part] = {}
                 current = current[part]
+        save_state(self)
 
 async def run_server(host: str, port: int, config_path: str = None):
     """Inicia el servidor FastAPI del NameNode"""
@@ -112,11 +135,13 @@ async def run_server(host: str, port: int, config_path: str = None):
             "blocks": blocks
         }
         namenode.update_directory_structure(filename)
+        save_state(namenode)
         return {"filename": filename, "blocks": blocks}
 
     @app.post("/directory")
     async def create_directory(path: str):
         namenode.update_directory_structure(path, is_directory=True)
+        save_state(namenode)
         return {"message": f"Directory {path} created"}
 
     @app.get("/ls/{path:path}")
@@ -139,6 +164,7 @@ async def run_server(host: str, port: int, config_path: str = None):
                 # Eliminar el directorio si existe
                 if part in current and isinstance(current[part], dict):
                     del current[part]
+                    save_state(namenode)
                     return {"message": f"Directorio {path} eliminado"}
                 else:
                     raise HTTPException(status_code=404, detail="Directorio no encontrado")
